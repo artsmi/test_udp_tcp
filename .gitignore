@@ -1,3 +1,9 @@
+##Custom
+build/
+
+
+##Auto generated C .gitignore
+
 # Prerequisites
 *.d
 
