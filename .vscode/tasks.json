@@ -1,11 +1,25 @@
 {
+  "version": "2.0.0",
   "tasks": [
     {
       "label": "Custom Build by Cmake",
       "type": "shell",
       "command": "${workspaceFolder}/build.sh",
       "group": "build"
+    },
+    {
+      "label": "Formatting and Checking",
+      "type": "shell",
+      "command": "${workspaceFolder}/check_format.sh",
+      "isBackground": true,
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
     }
-  ],
-  "version": "2.0.0"
+  ]
 }
