@@ -1,5 +1,3 @@
-// Copyright 21.12.2024 <Artem Smirnov
-
 #include <stdio.h>
 
 #define EXIT_SUCCES (0)

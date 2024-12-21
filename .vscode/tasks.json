@@ -1,0 +1,11 @@
+{
+  "tasks": [
+    {
+      "label": "Custom Build by Cmake",
+      "type": "shell",
+      "command": "${workspaceFolder}/build.sh",
+      "group": "build"
+    }
+  ],
+  "version": "2.0.0"
+}
