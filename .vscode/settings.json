@@ -3,6 +3,7 @@
     "uthread.h": "c",
     "net_threads.h": "c",
     "thread_mgr.h": "c",
-    "logger.h": "c"
+    "logger.h": "c",
+    "netdef.h": "c"
   }
 }

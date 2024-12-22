@@ -18,5 +18,9 @@ extern THREAD_SETTINGS* thm_add_thread(THREAD_MANAGER* pmgr,
                                        void* pdata);
 
 extern void thm_stop_destroy_all(THREAD_MANAGER* pmgr);
+extern void thm_wait_all(THREAD_MANAGER* pmgr);
+extern void thm_cancell_all(THREAD_MANAGER* pmgr);
+extern void thm_destroy_all(THREAD_MANAGER* pmgr);
+extern void thm_emergency_all(THREAD_MANAGER* pmgr);
 
 #endif  // THREAD_MGR_H

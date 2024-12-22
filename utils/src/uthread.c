@@ -6,12 +6,7 @@
 #include "../include/logger.h"
 
 bool ut_verificate(const THREAD_SETTINGS* pts) {
-  return pts != NULL && pts->pname != NULL && pts->pep != NULL &&
-         pts->resources.pf_is_running != NULL;
-}
-
-static bool _utf_is_running(void* pthread_settings) {
-  return ut_is_running((THREAD_SETTINGS*)pthread_settings);
+  return pts != NULL && pts->pname != NULL && pts->pep != NULL;
 }
 
 void ut_prepare_thread(THREAD_SETTINGS** ppts, const char* pname) {
@@ -19,7 +14,6 @@ void ut_prepare_thread(THREAD_SETTINGS** ppts, const char* pname) {
   *ppts = malloc(size_bytes);
   memset(*ppts, 0, size_bytes);
   (*ppts)->pname = pname;
-  (*ppts)->resources.pf_is_running = _utf_is_running;
 }
 
 void ut_destroy(THREAD_SETTINGS* pts) {
@@ -31,7 +25,6 @@ void ut_destroy(THREAD_SETTINGS* pts) {
     ulog(LL_E, "cannot destroy attr thread %s, E: %s", pts->pname,
          strerror(errn));
   }
-  pthread_mutex_destroy(&pts->mtx_is_done);
   free(pts);
 }
 
@@ -41,7 +34,6 @@ int ut_create_default(THREAD_SETTINGS* pts) {
     return EPERM;
   }
   pts->is_done = false;
-  pthread_mutex_init(&(pts->mtx_is_done), NULL);
   pts->tid = 0;
   pthread_attr_init(&pts->attr);
   pts->resources.parg_ep = pts->pep;
@@ -56,21 +48,18 @@ int ut_create_default(THREAD_SETTINGS* pts) {
   return errn;
 }
 
-bool ut_is_running(THREAD_SETTINGS* pts) {
-  bool is_running = false;
-  pthread_mutex_lock(&pts->mtx_is_done);
-  is_running = !pts->is_done;
-  pthread_mutex_unlock(&pts->mtx_is_done);
-  return is_running;
+void ut_emergency(THREAD_SETTINGS* pts) {
+  if (pts == NULL || pts->resources.pf_emergency == NULL)
+    return;
+  ulog(LL_I, "%s emergency calling...", pts->pname);
+  pts->resources.pf_emergency((void*)&pts->resources);
 }
 
 void ut_cancel(THREAD_SETTINGS* pts) {
   if (pts == NULL)
     return;
-  pthread_mutex_lock(&pts->mtx_is_done);
-  ulog(LL_I, "%p thread set is done: true", (void*)pts->tid);
+  // ulog(LL_I, "%p thread set is done: true", (void*)pts->tid);
   pts->is_done = true;
-  pthread_mutex_unlock(&pts->mtx_is_done);
 }
 
 void ut_cancel_hard(THREAD_SETTINGS* pts) {
@@ -93,4 +82,21 @@ int ut_join(pthread_t tid) {
     ulog(LL_E, "failed to join %p thread: %s", (void*)tid, strerror(errn));
   }
   return errn;
+}
+
+bool utr_is_running(RESOURCES* pres) {
+  if (pres == NULL) {
+    return false;
+  }
+  bool is_running = false;
+  const THREAD_SETTINGS* pts = (THREAD_SETTINGS*)pres->pthread_settings;
+  is_running = !pts->is_done;
+  return is_running;
+}
+
+void utr_setup_emergency_function(RESOURCES* pres, EmergencyFunc pf) {
+  if (pres == NULL || pf == NULL) {
+    return;
+  }
+  pres->pf_emergency = pf;
 }

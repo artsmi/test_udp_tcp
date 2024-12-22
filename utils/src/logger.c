@@ -27,13 +27,13 @@ void ulog(LL log_level, const char* pmessage, ...) {
       break;
   }
 
-  time_t now;
+  /*time_t now;
   time(&now);
   char* pstrdate = ctime(&now);
-  pstrdate[strlen(pstrdate) - 1] = '\0';
+  pstrdate[strlen(pstrdate) - 1] = '\0';*/
 
   pthread_t thread_id = pthread_self();
-  printf("%s [%p][%s]:", pstrdate, (void*)thread_id, ptag);
+  printf("[%p][%s]:", (void*)thread_id, ptag);
   vprintf(pmessage, args);
   printf("\n");
 

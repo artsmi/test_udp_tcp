@@ -36,9 +36,16 @@ THREAD_SETTINGS* thm_add_thread(THREAD_MANAGER* pmgr,
   return pthread;
 }
 
-void thm_stop_destroy_all(THREAD_MANAGER* pmgr) {
+typedef enum {
+  THM_OP_WAIT = 0,
+  THM_OP_CANCEL = 1,
+  THM_OP_DESTROY = 2,
+  THM_OP_EMERGENCY = 3
+} THM_OPS;
+
+void _thm_do_all(THREAD_MANAGER* pmgr, THM_OPS code) {
   if (pmgr == NULL) {
-    ulog(LL_E, "thm_stop_all bad pointer");
+    ulog(LL_E, "thm_do_all bad pointer");
     return;
   }
   THREAD_SETTINGS** ppthread = NULL;
@@ -49,9 +56,46 @@ void thm_stop_destroy_all(THREAD_MANAGER* pmgr) {
     if (pthread == NULL) {
       ulog(LL_E, "thm_stop_all counter overhead: %d", i);
     } else {
-      ut_cancel(pthread);
-      ut_join(pthread->tid);
-      ut_destroy(pthread);
+      switch (code) {
+        case THM_OP_WAIT:
+          ut_join(pthread->tid);
+          break;
+        case THM_OP_CANCEL:
+          ut_cancel(pthread);
+          break;
+        case THM_OP_EMERGENCY:
+          ut_emergency(pthread);
+          break;
+        case THM_OP_DESTROY:
+          ut_destroy(pthread);
+          *ppthread = NULL;
+          --(pmgr->nthreads);
+          break;
+        default:
+          break;
+      }
     }
   }
+}
+
+void thm_stop_destroy_all(THREAD_MANAGER* pmgr) {
+  _thm_do_all(pmgr, THM_OP_CANCEL);
+  _thm_do_all(pmgr, THM_OP_WAIT);
+  _thm_do_all(pmgr, THM_OP_DESTROY);
+}
+
+void thm_wait_all(THREAD_MANAGER* pmgr) {
+  _thm_do_all(pmgr, THM_OP_WAIT);
+}
+
+void thm_cancell_all(THREAD_MANAGER* pmgr) {
+  _thm_do_all(pmgr, THM_OP_CANCEL);
+}
+
+void thm_destroy_all(THREAD_MANAGER* pmgr) {
+  _thm_do_all(pmgr, THM_OP_DESTROY);
+}
+
+void thm_emergency_all(THREAD_MANAGER* pmgr) {
+  _thm_do_all(pmgr, THM_OP_EMERGENCY);
 }
