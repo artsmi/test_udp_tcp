@@ -58,7 +58,7 @@ void _thm_do_all(THREAD_MANAGER* pmgr, THM_OPS code) {
     } else {
       switch (code) {
         case THM_OP_WAIT:
-          ut_join(pthread->tid);
+          ut_join(pthread);
           break;
         case THM_OP_CANCEL:
           ut_cancel(pthread);

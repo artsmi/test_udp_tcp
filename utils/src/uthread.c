@@ -71,15 +71,22 @@ void ut_cancel_hard(THREAD_SETTINGS* pts) {
   ulog(LL_I, "%p thread was cancelled hardly", (void*)pts->tid);
 }
 
-int ut_join(pthread_t tid) {
-  int errn = pthread_join(tid, NULL);
+int ut_join(THREAD_SETTINGS* pts) {
+  if (pts == NULL || pts->is_joined) {
+    return 0;
+  }
+
+  int errn = pthread_join(pts->tid, NULL);
   if (errn == ESRCH) {
-    ulog(LL_W, "%p thread could not be found for join (ESRCH)", (void*)tid);
+    ulog(LL_W, "%p thread could not be found for join (ESRCH)",
+         (void*)pts->tid);
     errn = 0;
   } else if (errn == 0) {
-    ulog(LL_I, "joined with %p thread", (void*)tid);
+    ulog(LL_I, "joined with %p thread %s", (void*)pts->tid, pts->pname);
+    pts->is_joined = true;
   } else {
-    ulog(LL_E, "failed to join %p thread: %s", (void*)tid, strerror(errn));
+    ulog(LL_E, "failed to join %p thread %s, err: %s", (void*)pts->tid,
+         pts->pname, strerror(errn));
   }
   return errn;
 }

@@ -13,12 +13,15 @@ void s_udp_emergency(void* presources) {
 
 void* udp_server_start(void* pdata) {
   ulog(LL_I, "UDP Server thread started...");
+
+  const char* padd_data = "ABCD";
   RESOURCES* presources = (RESOURCES*)pdata;
   presources->pf_emergency = s_udp_emergency;
   int socket_desc = 0;
   struct sockaddr_in server_addr, client_addr;
   int client_struct_length = sizeof(client_addr);
   char client_message[BUFFER_ALL_DATA_SIZE_BYTES];
+  char* pmessage = client_message + BUFFER_ADD_DATA_SIZE_BYTES;
 
   socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   presources->data_value = socket_desc;
@@ -34,20 +37,20 @@ void* udp_server_start(void* pdata) {
 
   if (0 >
       bind(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr))) {
-    ulog(LL_E, "server: error while socker binding: %s", strerror(errno));
+    ulog(LL_E, "UDP server: error while socker binding: %s", strerror(errno));
     pthread_exit(NULL);
   }
   ulog(LL_I, "UDP Server: socket bind OK, listening...");
 
-  size_t last_size = sizeof(client_message);
+  size_t msize = BUFFER_DATA_MAX_SIZE_BYTES;
   while (utr_is_running(presources)) {
-    memset(client_message, '\0', last_size);
-    if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
-                 (struct sockaddr*)&client_addr, &client_struct_length) < 0) {
+    memset(pmessage, '\0', msize);
+    if (0 > recvfrom(socket_desc, pmessage, msize, 0,
+                     (struct sockaddr*)&client_addr, &client_struct_length)) {
       ulog(LL_E, "UDP Server: recv data: %s", strerror(errno));
-      memset(client_message, '\0', sizeof(client_message));
+      memset(pmessage, '\0', BUFFER_DATA_MAX_SIZE_BYTES);
     } else {
-      last_size = strlen(client_message);
+      memcpy(client_message, padd_data, BUFFER_ADD_DATA_SIZE_BYTES);
       /*ulog(LL_I, "UDP Server: Received message from IP: %s and port: %i, with
          size: %d", inet_ntoa(client_addr.sin_addr),
          ntohs(client_addr.sin_port), last_size);*/
