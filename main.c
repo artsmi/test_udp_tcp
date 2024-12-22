@@ -5,10 +5,11 @@
 #define EXIT_SUCCES (0)
 #define EXIT_ERROR (1)
 
-void* simple_thread(void* pparam) {
-  int n = 10000;
-  while (n > 0) {
-    --n;
+void* simple_thread(void* pdata) {
+  RESOURCES* presources = (RESOURCES*)pdata;
+  int n = 100000000;
+  while (n > 0 && presources->pf_is_running(presources->pthread_settings)) {
+    ulog(LL_I, "pass:%d", --n);
   }
 }
 
@@ -22,6 +23,8 @@ int main(int argc, char* argv[]) {
   if (0 != ut_create_default(pthread)) {
     return EXIT_ERROR;
   }
+  sleep(1);
+  ut_cancel(pthread);
   if (0 != ut_join(pthread->tid)) {
     return EXIT_ERROR;
   }
