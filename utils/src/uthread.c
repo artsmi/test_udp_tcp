@@ -32,6 +32,7 @@ void ut_destroy(THREAD_SETTINGS* pts) {
          strerror(errn));
   }
   pthread_mutex_destroy(&pts->mtx_is_done);
+  free(pts);
 }
 
 int ut_create_default(THREAD_SETTINGS* pts) {

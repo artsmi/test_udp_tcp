@@ -15,6 +15,7 @@ find . \
   --suppress=missingIncludeSystem\
   --suppress=checkersReport\
   --suppress=unmatchedSuppression\
+  --suppress=constParameterPointer\
   {} \;
 
 echo -en "\n${LBLUE}${BOLD} Clang Formatter is starting...\n ${DEF}${NORMAL}\n"

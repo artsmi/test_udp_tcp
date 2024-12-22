@@ -15,7 +15,7 @@
       "group": "test",
       "presentation": {
         "reveal": "always",
-        "panel": "new"
+        "panel": "shared"
       },
       "runOptions": {
         "runOn": "folderOpen"
