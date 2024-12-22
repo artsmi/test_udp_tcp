@@ -18,6 +18,8 @@ check_create ${INSTALL_DIRECTORY}
 
 cd ${BUILD_DIRECTORY}
 
-cmake -DGLOBAL_INSTALL_DIR="$BASE_DIRECTORY/${INSTALL_DIRECTORY}" ..
+cmake -DCMAKE_BUILD_TYPE=Debug \
+      -DGLOBAL_INSTALL_DIR="$BASE_DIRECTORY/${INSTALL_DIRECTORY}" \
+      ..
 make
 cmake --install ./

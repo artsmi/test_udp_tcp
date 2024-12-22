@@ -1,12 +1,10 @@
 #include "../include/logger.h"
-#include <sys/types.h>
-#define _DECLARE_GETTID
-#include <unistd.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 #include <time.h>
-
 
 void ulog(LL log_level, const char* pmessage, ...) {
   va_list args;
@@ -34,8 +32,8 @@ void ulog(LL log_level, const char* pmessage, ...) {
   char* pstrdate = ctime(&now);
   pstrdate[strlen(pstrdate) - 1] = '\0';
 
-  pid_t tid = gettid();
-  printf("%s [0x%x][%s]:", pstrdate, tid, ptag);
+  pthread_t thread_id = pthread_self();
+  printf("%s [%p][%s]:", pstrdate, (void*)thread_id, ptag);
   vprintf(pmessage, args);
   printf("\n");
 
