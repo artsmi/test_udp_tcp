@@ -33,6 +33,13 @@ int main(int argc, char* argv[]) {
 
   thm_prepare(&gtmgr);
   thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
+  thm_add_thread(&gtmgr, "(C)UDP_Pusher", &udp_client_pusher_start, NULL);
   thm_add_thread(&gtmgr, "(S)UDP_Server", &udp_server_start, NULL);
 
   signal(SIGINT, interrupt_function);

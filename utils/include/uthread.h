@@ -35,6 +35,5 @@ extern void ut_cancel_hard(THREAD_SETTINGS* pts);
 extern void ut_emergency(THREAD_SETTINGS* pts);
 
 extern bool utr_is_running(RESOURCES* pres);
-extern void utr_setup_emergency_function(RESOURCES* pres, EmergencyFunc pf);
 
 #endif  // UTHREAD_H

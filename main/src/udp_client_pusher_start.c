@@ -29,7 +29,7 @@ size_t get_random_size() {
 void* udp_client_pusher_start(void* pdata) {
   ulog(LL_I, "UDP Client Pusher: started...");
   RESOURCES* presources = (RESOURCES*)pdata;
-  utr_setup_emergency_function(presources, c_udp_emergency);
+  presources->pf_emergency = c_udp_emergency;
 
   int socket_desc = 0;
   struct sockaddr_in server_addr;

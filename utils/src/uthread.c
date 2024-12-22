@@ -93,10 +93,3 @@ bool utr_is_running(RESOURCES* pres) {
   is_running = !pts->is_done;
   return is_running;
 }
-
-void utr_setup_emergency_function(RESOURCES* pres, EmergencyFunc pf) {
-  if (pres == NULL || pf == NULL) {
-    return;
-  }
-  pres->pf_emergency = pf;
-}

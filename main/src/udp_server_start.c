@@ -14,7 +14,7 @@ void s_udp_emergency(void* presources) {
 void* udp_server_start(void* pdata) {
   ulog(LL_I, "UDP Server thread started...");
   RESOURCES* presources = (RESOURCES*)pdata;
-  utr_setup_emergency_function(presources, s_udp_emergency);
+  presources->pf_emergency = s_udp_emergency;
   int socket_desc = 0;
   struct sockaddr_in server_addr, client_addr;
   int client_struct_length = sizeof(client_addr);
