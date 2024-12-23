@@ -72,7 +72,7 @@ void _rw_client_data_loop(int socket_desc, RESOURCES* presources) {
     if (size_bytes > 0) {
       ++count;
       if ((count % _N_PACKETS_BACK_) == 0) {
-        ulog(LL_I, "TCP Client: get %d packets bask!", _N_PACKETS_BACK_);
+        ulog(LL_I, "TCP Client: get %d packets back!", _N_PACKETS_BACK_);
         count = 0;
       }
     } else if (errno == EPIPE) {
