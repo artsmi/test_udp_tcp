@@ -5,23 +5,33 @@
 #include <uthread.h>
 #include "../include/net_threads.h"
 #include "../include/netdef.h"
+#include "../include/tcp_udp_data.h"
 
 void s_udp_emergency(void* presources) {
   ulog(LL_I, "UDP Server emergency calling OK");
   shutdown(((RESOURCES*)presources)->data_value, SHUT_RDWR);
 }
 
+void _add_const_data(TCP_UDP_DATA* pres_data, const char* p4data) {
+  pthread_mutex_lock(&pres_data->mtx);
+  memcpy(pres_data->data, p4data, BUFFER_ADD_DATA_SIZE_BYTES);
+  pthread_mutex_unlock(&pres_data->mtx);
+}
+
 void* udp_server_start(void* pdata) {
   ulog(LL_I, "UDP Server thread started...");
 
-  const char* padd_data = "ABCD";
+  const char* p4data = "ABCD";
   RESOURCES* presources = (RESOURCES*)pdata;
+  TCP_UDP_DATA* pres_data = (TCP_UDP_DATA*)presources->parg_ep;
+  if (pres_data == NULL) {
+    ulog(LL_E, "UDP Server no data buffer");
+    pthread_exit(NULL);
+  }
+  _add_const_data(pres_data, p4data);
   presources->pf_emergency = s_udp_emergency;
   int socket_desc = 0;
-  struct sockaddr_in server_addr, client_addr;
-  int client_struct_length = sizeof(client_addr);
-  char client_message[BUFFER_ALL_DATA_SIZE_BYTES];
-  char* pmessage = client_message + BUFFER_ADD_DATA_SIZE_BYTES;
+  struct sockaddr_in server_addr;
 
   socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   presources->data_value = socket_desc;
@@ -42,19 +52,27 @@ void* udp_server_start(void* pdata) {
   }
   ulog(LL_I, "UDP Server: socket bind OK, listening...");
 
-  size_t msize = BUFFER_DATA_MAX_SIZE_BYTES;
   while (utr_is_running(presources)) {
-    memset(pmessage, '\0', msize);
-    if (0 > recvfrom(socket_desc, pmessage, msize, 0,
-                     (struct sockaddr*)&client_addr, &client_struct_length)) {
-      ulog(LL_E, "UDP Server: recv data: %s", strerror(errno));
-      memset(pmessage, '\0', BUFFER_DATA_MAX_SIZE_BYTES);
+    char* pmessage = pres_data->data + BUFFER_ADD_DATA_SIZE_BYTES;
+    pthread_mutex_lock(&pres_data->mtx);
+    memset(pmessage, 0, BUFFER_DATA_MAX_SIZE_BYTES);
+    int size_bytes =
+        recv(socket_desc, pmessage, BUFFER_DATA_MAX_SIZE_BYTES, MSG_DONTWAIT);
+    if (0 > size_bytes) {
+      if (errno != EAGAIN)
+        ulog(LL_E, "UDP Server: error recv data: %d: %s", errno,
+             strerror(errno));
     } else {
-      memcpy(client_message, padd_data, BUFFER_ADD_DATA_SIZE_BYTES);
-      /*ulog(LL_I, "UDP Server: Received message from IP: %s and port: %i, with
-         size: %d", inet_ntoa(client_addr.sin_addr),
-         ntohs(client_addr.sin_port), last_size);*/
+      // ulog(LL_I, "UDP Server: got data: %d", size_bytes);
+      pres_data->nbytes = size_bytes + BUFFER_ADD_DATA_SIZE_BYTES;
+      ++(pres_data->index);
+      if (pres_data->index == __INT_MAX__ - 1) {
+        pres_data->index = 0;
+      }
+      // pthread_cond_signal(&pres_data->cv);
     }
+    pthread_mutex_unlock(&pres_data->mtx);
+    _SLEEP_NETWORK_SHORT_RECV_;
   }
   close(socket_desc);
   shutdown(socket_desc, SHUT_RDWR);

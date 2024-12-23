@@ -55,7 +55,6 @@ bool _try_accept_connection(int socket_desc, int* pconn_desc) {
 
 void _rw_srv_data_loop(int socket_desc, RESOURCES* presources) {
   char buffer[BUFFER_ALL_DATA_SIZE_BYTES];
-  memset(buffer, '\0', sizeof(buffer));
   int conn_desc = 0;
   while (utr_is_running(presources)) {
     int new_conn_desc = 0;
@@ -64,17 +63,16 @@ void _rw_srv_data_loop(int socket_desc, RESOURCES* presources) {
       conn_desc = new_conn_desc;
     }
     if (conn_desc != 0) {
+      memset(buffer, 0, sizeof(buffer));
       int size_bytes = recv(conn_desc, buffer, sizeof(buffer), MSG_DONTWAIT);
       if (size_bytes > 0) {
-        ulog(LL_I, "TCP Server: data: buffer len: %d, size_bytes: %d",
-             strlen(buffer), size_bytes);
-        send(conn_desc, buffer, sizeof(buffer) /*strlen(buffer)*/,
-             MSG_NOSIGNAL);
+        // ulog(LL_I, "TCP Server: data: size_bytes: %d", size_bytes);
+        send(conn_desc, buffer, size_bytes, MSG_NOSIGNAL);
       } else if (errno == EPIPE) {
         break;
       }
     }
-    _SLEEP_NETWORK_SHORT_;
+    _SLEEP_NETWORK_SHORT_RECV_;
   }
   if (conn_desc != 0)
     close(conn_desc);

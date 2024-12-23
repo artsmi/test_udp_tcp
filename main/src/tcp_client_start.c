@@ -5,6 +5,7 @@
 #include <uthread.h>
 #include "../include/net_threads.h"
 #include "../include/netdef.h"
+#include "../include/tcp_udp_data.h"
 
 void _c_tcp_emergency(void* presources) {
   ulog(LL_I, "TCP Client emergency calling OK");
@@ -43,23 +44,41 @@ bool _initiate_connection(int* psocket_desc, RESOURCES* presources) {
 }
 
 void _rw_client_data_loop(int socket_desc, RESOURCES* presources) {
-  char buffer[BUFFER_ALL_DATA_SIZE_BYTES];
+  TCP_UDP_DATA* pres_data = (TCP_UDP_DATA*)presources->parg_ep;
+  if (pres_data == NULL) {
+    ulog(LL_E, "TCP Client: no data buffer");
+    return;
+  }
+  char buffer_recv[BUFFER_ALL_DATA_SIZE_BYTES];
+  size_t count = 0;
+  int last_index = 0;
   while (utr_is_running(presources)) {
-    memset(buffer, '\0', sizeof(buffer));
-    int size_bytes = send(socket_desc, buffer, sizeof(buffer), MSG_NOSIGNAL);
-    if (size_bytes == 0) {
-      ulog(LL_I, "TCP Client: send_err: %d", errno);
-      break;
-    } else {
-      ulog(LL_I, "TCP Client: send: %d", size_bytes);
+    int size_bytes = 0;
+    pthread_mutex_lock(&pres_data->mtx);
+    if (pres_data->nbytes > BUFFER_ADD_DATA_SIZE_BYTES &&
+        last_index != pres_data->index) {
+      // pthread_cond_wait(&pres_data->cv, &pres_data->mtx);
+      last_index = pres_data->index;
+      size_bytes =
+          send(socket_desc, pres_data->data, pres_data->nbytes, MSG_NOSIGNAL);
+      if (size_bytes == 0) {
+        ulog(LL_I, "TCP Client: send_err: %d", errno);
+        break;
+      }
     }
-    usleep(1000000);
-    size_bytes = recv(socket_desc, buffer, sizeof(buffer), MSG_DONTWAIT);
+    pthread_mutex_unlock(&pres_data->mtx);
+    size_bytes =
+        recv(socket_desc, buffer_recv, sizeof(buffer_recv), MSG_DONTWAIT);
     if (size_bytes > 0) {
-      ulog(LL_I, "TCP Client: data!");
+      ++count;
+      if ((count % _N_PACKETS_BACK_) == 0) {
+        ulog(LL_I, "TCP Client: get %d packets bask!", _N_PACKETS_BACK_);
+        count = 0;
+      }
     } else if (errno == EPIPE) {
       break;
     }
+    _SLEEP_NETWORK_SHORT_RECV_;
   }
 }
 

@@ -35,9 +35,12 @@ int ut_create_default(THREAD_SETTINGS* pts) {
   }
   pts->is_done = false;
   pts->tid = 0;
+
   pthread_attr_init(&pts->attr);
-  pts->resources.parg_ep = pts->pep;
+  pthread_attr_setdetachstate(&pts->attr, PTHREAD_CREATE_JOINABLE);
+
   pts->resources.pthread_settings = (void*)pts;
+  pts->resources.parg_ep = pts->parg_ep;
   int errn =
       pthread_create(&pts->tid, &pts->attr, pts->pep, (void*)&pts->resources);
   if (errn != 0) {

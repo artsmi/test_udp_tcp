@@ -52,7 +52,7 @@ void* udp_client_pusher_start(void* pdata) {
 
   size_t last_random_size = sizeof(data);
   while (utr_is_running(presources)) {
-    memset(data, '\0', last_random_size);
+    memset(data, 0, last_random_size);
     last_random_size = get_random_size();
     for (size_t i = 0; i < last_random_size; i++)
       data[i] = rand();
@@ -60,9 +60,9 @@ void* udp_client_pusher_start(void* pdata) {
                    (struct sockaddr*)&server_addr, server_struct_length)) {
       ulog(LL_E, "UDP Client Pusher: send data error: %s", strerror(errno));
     } else {
-      /*ulog(LL_I, "UDP Client Pusher: send data: %d", last_random_size);*/
+      // ulog(LL_I, "UDP Client Pusher: send data: %d", last_random_size);
     }
-    usleep(1);
+    _SLEEP_NETWORK_SHORT_SEND_;
   }
   close(socket_desc);
   shutdown(socket_desc, SHUT_RDWR);
